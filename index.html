@@ -103,6 +103,10 @@ button, input { font: inherit; color: inherit; }
 .node.t-artset text.l { font-size: 12px; fill: var(--muted); font-weight: 600; }
 .node text .k { font-family: var(--mono); font-size: 0.86em; fill: var(--muted); }
 .node text .more { font-family: var(--mono); font-size: 11px; fill: var(--accent); font-weight: 500; }
+.node .tog { cursor: pointer; }
+.node .tog rect { fill: var(--sunk); stroke: var(--line); }
+.node .tog:hover rect { stroke: var(--accent); fill: var(--surface); }
+.node .tog text { font-family: var(--mono); font-size: 11px; font-weight: 500; fill: var(--accent); stroke: none; pointer-events: none; }
 .node .ring { fill: none; stroke: transparent; stroke-width: 2.5; }
 .node.sel .ring { stroke: var(--accent); }
 .node.hit .ring { stroke: var(--hit); stroke-width: 3.5; }
@@ -163,7 +167,7 @@ button, input { font: inherit; color: inherit; }
   <aside class="ctrl" aria-label="Graph controls">
     <div>
       <h1>AI Maturity Model Graph</h1>
-      <p class="sub">SEI &amp; Accenture, AI Adoption Maturity Model v1.0. Turn layers on to add detail; click a node to open or close its branch and read about it.</p>
+      <p class="sub">SEI &amp; Accenture, AI Adoption Maturity Model v1.0. Turn layers on to add detail. Click a node to read about it; use the − / + button beside it, or double-click, to close or open its branch.</p>
     </div>
 
     <div class="grp">
@@ -350,13 +354,13 @@ function labelLines(n, radial) {
   } else if (d.type === "goal") lines = wrap(prefix + d.label, "goal", 270, 3);
   else if (d.type === "root") lines = ["AI Adoption", "Maturity Model"];
   else lines = [prefix + d.label];
-  return { lines, more: hid ? d.children.length : 0 };
+  return { lines, more: hid ? d.children.length : 0, kids: d.type !== "root" && !!(d.children && d.children.length) };
 }
 
 /* ---------- Layout ---------- */
 function layout(root) {
   const radial = state.layout === "radial";
-  root.each(n => { n.lab = labelLines(n, radial); n.w = Math.max(...n.lab.lines.map(l => measure(l, n.data.type))) + (n.lab.more ? 30 : 0); n.h = Math.max(n.data.type === "practice" || n.data.type === "artifact" ? 17 : 24, n.lab.lines.length * (LH[n.data.type] || 17) + 6); });
+  root.each(n => { n.lab = labelLines(n, radial); n.tw = Math.max(...n.lab.lines.map(l => measure(l, n.data.type))); n.w = n.tw + (n.lab.kids ? 36 : 0); n.h = Math.max(n.data.type === "practice" || n.data.type === "artifact" ? 17 : 24, n.lab.lines.length * (LH[n.data.type] || 17) + 6); });
   if (!radial) {
     d3.tree().nodeSize([1, 1]).separation((a, b) => (a.h + b.h) / 2 + (a.parent === b.parent ? 2 : 10))(root);
     const depthW = [];
@@ -421,11 +425,22 @@ function render(fit) {
     .style("opacity", 0)
     .attr("tabindex", 0)
     .on("click", (e, n) => onNode(n.data.id))
-    .on("keydown", (e, n) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onNode(n.data.id); } });
+    .on("dblclick", (e, n) => { if (n.lab.kids) toggleBranch(n.data.id); })
+    .on("keydown", (e, n) => {
+      const open = !state.collapsed.has(n.data.id);
+      if (e.key === "Enter") { e.preventDefault(); onNode(n.data.id); }
+      else if (n.lab.kids && (e.key === " " || (e.key === "ArrowRight" && !open) || (e.key === "ArrowLeft" && open))) { e.preventDefault(); toggleBranch(n.data.id); }
+    });
   ent.append("circle").attr("class", "ring");
   ent.append("path").attr("class", "shape");
   ent.append("text").attr("class", "num").attr("text-anchor", "middle").attr("dy", "0.35em");
   ent.append("text").attr("class", "l");
+  const tog = ent.append("g").attr("class", "tog")
+    .on("click", (e, n) => { e.stopPropagation(); toggleBranch(n.data.id); })
+    .on("dblclick", e => e.stopPropagation());
+  tog.append("rect").attr("rx", 8).attr("height", 16).attr("y", -8);
+  tog.append("text").attr("text-anchor", "middle").attr("dy", "0.35em");
+  tog.append("title");
   ent.append("title");
   sel.exit().transition(t).attr("transform", n => { const a = nearest(n.data.id, pos) || root; return `translate(${a.px},${a.py})`; }).style("opacity", 0).remove();
 
@@ -439,6 +454,7 @@ function render(fit) {
   all.select("text.num").text(n => n.data.type === "ca" ? n.data.level : n.data.type === "level" ? n.data.level : "")
     .style("fill", n => n.data.type === "level" ? "var(--bg)" : null);
   all.select("text.l").each(function (n) { drawLabel(d3.select(this), n, radial); });
+  all.select("g.tog").each(function (n) { drawToggle(d3.select(this), n, radial); });
 
   // Cross-dimension links
   drawXLinks(pos, t);
@@ -482,8 +498,20 @@ function drawLabel(el, n, radial) {
     const m = line.match(/^((?:G|P)\d+(?:\.\d+)?)\s\s(.*)$/);
     if (m) { ts.append("tspan").attr("class", "k").text(m[1] + " "); ts.append("tspan").text(m[2]); }
     else ts.text(line);
-    if (more && i === lines.length - 1) ts.append("tspan").attr("class", "more").text(`  +${more}`);
   });
+}
+function drawToggle(g, n, radial) {
+  const kids = n.lab.kids;
+  g.style("display", kids ? null : "none");
+  if (!kids) return;
+  const closed = state.collapsed.has(n.data.id), w = closed ? 20 + String(n.lab.more).length * 7 : 18;
+  const off = R[n.data.type] + 7 + n.tw + 8 + w / 2;
+  let rot = 0, x = off;
+  if (radial) { const deg = n.a * 180 / Math.PI - 90, flip = n.a > Math.PI; rot = flip ? deg + 180 : deg; x = flip ? -off : off; }
+  g.attr("transform", `rotate(${rot}) translate(${x},0)`);
+  g.select("rect").attr("x", -w / 2).attr("width", w);
+  g.select("text").text(closed ? `+${n.lab.more}` : "−");
+  g.select("title").text(closed ? `Open branch (${n.lab.more} hidden)` : "Close branch");
 }
 function fullText(d) {
   if (d.type === "ca") return `${d.ca.id} ${d.ca.name}\nCompletes Level ${d.level} · ${LEVELS[d.level - 1].name}\n${d.ca.definition}`;
@@ -561,15 +589,11 @@ function centerOn(id) {
 }
 
 /* ---------- Interaction ---------- */
-function onNode(id) {
-  const n = current.descendants().find(x => x.data.id === id);
-  state.selected = id;
-  const hasKids = n && n.data.children && n.data.children.length;
-  if (hasKids && id !== "root") {
-    if (state.collapsed.has(id)) state.collapsed.delete(id); else state.collapsed.add(id);
-    render(false);
-  } else applyClasses();
-  showDetail(id);
+function onNode(id) { state.selected = id; applyClasses(); showDetail(id); }
+function toggleBranch(id) {
+  if (state.collapsed.has(id)) state.collapsed.delete(id); else state.collapsed.add(id);
+  render(false);
+  if (state.selected === id) showDetail(id);
 }
 function reveal(id) {
   const caId = id.startsWith("ca:") ? id.slice(3) : null;
@@ -658,7 +682,7 @@ function showDetail(id) {
 detail.addEventListener("click", e => {
   const go = e.target.closest("[data-go]"), tg = e.target.closest("[data-toggle]"), cl = e.target.closest("[data-close]");
   if (go) reveal(go.dataset.go);
-  if (tg) { const id = tg.dataset.toggle; if (state.collapsed.has(id)) state.collapsed.delete(id); else state.collapsed.add(id); render(false); showDetail(id); }
+  if (tg) { state.selected = tg.dataset.toggle; toggleBranch(tg.dataset.toggle); }
   if (cl) { state.selected = null; detail.hidden = true; applyClasses(); }
 });
 
@@ -729,7 +753,7 @@ document.getElementById("zfit").addEventListener("click", () => fitView(current,
 
 document.getElementById("legend").innerHTML =
   `<div class="row">${LEVELS.map(l => `<span class="it"><span class="dot" data-l="${l.n}"></span>L${l.n} ${l.short}</span>`).join("")}</div>
-   <div class="row"><span class="it">${icon("ca")}Area (number = level it completes)</span><span class="it">${icon("goal")}Goal</span><span class="it">${icon("practice")}Practice</span><span class="it">${icon("artifact")}Artifact</span><span class="it">${icon("xlink")}Related</span><span class="it muted">Dashed outline = closed branch</span></div>`;
+   <div class="row"><span class="it">${icon("ca")}Area (number = level it completes)</span><span class="it">${icon("goal")}Goal</span><span class="it">${icon("practice")}Practice</span><span class="it">${icon("artifact")}Artifact</span><span class="it">${icon("xlink")}Related</span><span class="it muted">− / + closes or opens a branch</span></div>`;
 
 let rt; addEventListener("resize", () => { clearTimeout(rt); rt = setTimeout(() => fitView(current, 0), 200); });
 syncUI();
