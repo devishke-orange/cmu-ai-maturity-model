@@ -188,15 +188,26 @@ footer { padding-top: 40px; font-size: 13.5px; color: var(--muted); max-width: 8
   .goal { grid-template-columns: minmax(0,1fr); }
   .goal ol { grid-column: 1; }
 }
+
+/* Site tabs: shared by the three pages */
+.sitetabs { display: flex; flex-wrap: wrap; align-items: center; gap: 0 18px; padding: 0 16px; background: var(--surface); border-bottom: 1px solid var(--line); font-family: var(--body); line-height: 1.3; }
+.sitetabs .site { font-family: var(--display); font-weight: 700; font-size: 15px; padding-block: 10px; }
+.sitetabs .site small { font-family: var(--body); font-weight: 400; font-size: 13px; color: var(--muted); margin-left: 8px; }
+.sitetabs .tabs { display: flex; gap: 2px; overflow-x: auto; margin-left: auto; }
+.sitetabs .tabs a { padding: 12px 12px 9px; font-size: 14.5px; font-weight: 600; color: var(--muted); text-decoration: none; border-bottom: 3px solid transparent; white-space: nowrap; }
+.sitetabs .tabs a:hover { color: var(--fg); }
+.sitetabs .tabs a[aria-current="page"] { color: var(--fg); border-bottom-color: var(--accent); }
+@media (max-width: 640px) { .sitetabs .tabs { margin-left: -12px; } .sitetabs .site small { display: none; } }
+body > .sitetabs { margin-inline: -16px; }
 </style>
 
+<nav class="sitetabs" aria-label="Pages"><span class="site">AI Adoption Maturity Model<small>Unofficial study aid</small></span><div class="tabs"><a href="index.html">Graph</a><a href="levels.html">By level</a><a href="reference.html" aria-current="page">Full list</a></div></nav>
 <div class="wrap">
   <header class="top">
     <div class="eyebrow">SEI &amp; Accenture · The AI Adoption Maturity Model v1.0 · Chapter 4</div>
     <h1>AI Adoption Maturity Map</h1>
     <p class="lede">Every dimension, capability area, goal and practice in one place, placed at the maturity level it is required for. Pick a target level to see what you have to have in place. Wording is condensed from the book; page numbers point back to the source.</p>
     <div class="stats" id="stats"></div>
-    <p><a href="index.html">Open the interactive graph →</a></p>
   </header>
 
   <nav class="jump" id="jump" aria-label="Jump to section"></nav>

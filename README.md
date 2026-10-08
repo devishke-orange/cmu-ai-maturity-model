@@ -9,11 +9,12 @@ An unofficial, interactive study aid for **The AI Adoption Maturity Model v1.0**
 | Page | What it shows |
 |---|---|
 | [`index.html`](index.html) | An interactive graph of the model. Switch layers on and off (dimension groups, dimensions, maturity levels, goals, practices, example artifacts, cross-dimension links), organize by dimension or by maturity level, view it as a tree or a radial mind map, and filter to the areas a target level needs. |
+| [`levels.html`](levels.html) | The model by maturity level. Pick one of the five levels for the organizational unit to see the capability areas Table 2 requires at that level and below, grouped by dimension, with the maturity indicators for that level highlighted. Each capability area opens onto its goals, and each goal onto its practices. |
 | [`reference.html`](reference.html) | The full list: every dimension, capability area, goal and practice, with the maturity level each capability area completes, the maturity indicators, and page references to the book. |
 
 The model at a glance: 8 dimensions, 25 capability areas, 64 goals and 244 practices. Each capability area sits at the maturity level its goals complete (Table 2, p. 85). A capability area's rating is capped by its weakest maturity indicator (Accountability, Planning, Resourcing), and a dimension's rating is capped by its weakest capability area (p. 87).
 
-Both pages are single static HTML files. They load D3 from cdnjs and fonts from Google Fonts, and need no build step. To view them locally, open `index.html` in a browser.
+All three pages are single static HTML files, linked by a tab bar at the top. The graph loads D3 from cdnjs, all pages load fonts from Google Fonts, and none needs a build step. To view them locally, open `index.html` in a browser.
 
 ## Copyright and attribution
 
