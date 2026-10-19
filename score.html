@@ -1,0 +1,603 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Maturity Index</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=Source+Sans+3:ital,wght@0,400;0,600;0,700;1,400&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Score one organizational unit: enter goals and maturity indicators per capability area, get a level per dimension and overall. v0: rough, meant to be argued with. */
+:root {
+  --bg: #f3f5f7;
+  --surface: #ffffff;
+  --sunk: #e9edf1;
+  --fg: #18212c;
+  --muted: #5a6675;
+  --line: #d6dde4;
+  --accent: #2f5fa7;
+  --warn: #a5541b;
+  --l1: #2f8f7f; --l2: #2f7fa6; --l3: #3d62bd; --l4: #5a4fb3; --l5: #7a3d9c;
+  --l1-bg: #e3f2ef; --l2-bg: #e2eff6; --l3-bg: #e6ebf8; --l4-bg: #ebe9f7; --l5-bg: #f1e7f6;
+  --on-l: #ffffff;
+  --display: "Bricolage Grotesque", "Avenir Next", "Segoe UI", system-ui, sans-serif;
+  --body: "Source Sans 3", "Segoe UI", system-ui, -apple-system, sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0f141a; --surface: #171e27; --sunk: #1d2631; --fg: #e4e9ef; --muted: #98a4b2; --line: #2b3643; --accent: #84aef0; --warn: #e3a06e;
+    --l1: #5cc6b2; --l2: #5fb4dc; --l3: #8199ea; --l4: #9d91ea; --l5: #c286e0;
+    --l1-bg: #15302c; --l2-bg: #142a37; --l3-bg: #1a2442; --l4-bg: #221f40; --l5-bg: #2b1d38;
+    --on-l: #0f141a;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0f141a; --surface: #171e27; --sunk: #1d2631; --fg: #e4e9ef; --muted: #98a4b2; --line: #2b3643; --accent: #84aef0; --warn: #e3a06e;
+  --l1: #5cc6b2; --l2: #5fb4dc; --l3: #8199ea; --l4: #9d91ea; --l5: #c286e0;
+  --l1-bg: #15302c; --l2-bg: #142a37; --l3-bg: #1a2442; --l4-bg: #221f40; --l5-bg: #2b1d38;
+  --on-l: #0f141a;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--fg); font-family: var(--body); font-size: 16px; line-height: 1.5; padding-inline: 16px; padding-block: 0 64px; }
+.wrap { max-width: 1240px; margin: 0 auto; }
+h1, h2, h3 { font-family: var(--display); text-wrap: balance; margin: 0; letter-spacing: -0.01em; }
+h1 { font-size: clamp(30px, 4.4vw, 44px); font-weight: 700; line-height: 1.05; }
+h2 { font-size: 20px; font-weight: 700; }
+h3 { font-size: 17px; font-weight: 700; }
+p { margin: 0; }
+a { color: var(--accent); }
+button, input, select, textarea { font: inherit; color: inherit; }
+.eyebrow { font-family: var(--mono); font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+.muted { color: var(--muted); }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 4px; }
+[data-l="1"] { --lc: var(--l1); --lb: var(--l1-bg); }
+[data-l="2"] { --lc: var(--l2); --lb: var(--l2-bg); }
+[data-l="3"] { --lc: var(--l3); --lb: var(--l3-bg); }
+[data-l="4"] { --lc: var(--l4); --lb: var(--l4-bg); }
+[data-l="5"] { --lc: var(--l5); --lb: var(--l5-bg); }
+
+/* Site tabs: shared by the pages */
+.sitetabs { display: flex; flex-wrap: wrap; align-items: center; gap: 0 18px; padding: 0 16px; background: var(--surface); border-bottom: 1px solid var(--line); font-family: var(--body); line-height: 1.3; }
+.sitetabs .site { font-family: var(--display); font-weight: 700; font-size: 15px; padding-block: 10px; }
+.sitetabs .site small { font-family: var(--body); font-weight: 400; font-size: 13px; color: var(--muted); margin-left: 8px; }
+.sitetabs .tabs { display: flex; gap: 2px; overflow-x: auto; margin-left: auto; }
+.sitetabs .tabs a { padding: 12px 12px 9px; font-size: 14.5px; font-weight: 600; color: var(--muted); text-decoration: none; border-bottom: 3px solid transparent; white-space: nowrap; }
+.sitetabs .tabs a:hover { color: var(--fg); }
+.sitetabs .tabs a[aria-current="page"] { color: var(--fg); border-bottom-color: var(--accent); }
+@media (max-width: 640px) { .sitetabs .tabs { margin-left: -12px; } .sitetabs .site small { display: none; } }
+body > .sitetabs { margin-inline: -16px; }
+
+header.top { padding-block: 32px 18px; display: grid; gap: 10px; }
+header.top .lede { max-width: 72ch; color: var(--muted); font-size: 16.5px; }
+.v0 { font-family: var(--mono); font-size: 11px; border: 1px solid var(--warn); color: var(--warn); border-radius: 999px; padding: 1px 8px; vertical-align: middle; margin-left: 8px; letter-spacing: 0.04em; }
+
+/* Session bar: who, when, scope, file actions */
+.session { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px; display: flex; flex-wrap: wrap; gap: 12px 18px; align-items: end; }
+.field { display: grid; gap: 3px; min-width: 0; }
+.field > span { font-size: 12.5px; color: var(--muted); font-weight: 600; }
+.field input, .field select, .field textarea { background: var(--bg); border: 1px solid var(--line); border-radius: 6px; padding: 6px 9px; min-width: 0; width: 100%; }
+.field textarea { resize: vertical; min-height: 34px; }
+.session .f-dept { flex: 2 1 220px; }
+.session .f-who { flex: 1 1 160px; }
+.session .f-date { flex: 0 1 160px; }
+.seg { display: inline-flex; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; background: var(--bg); }
+/* Visually hidden radios inside pill controls; the label stays the positioning box so nothing overflows */
+.seg label, .gopt label, .steps label { position: relative; }
+.seg input, .gopt input, .steps input { width: 1px; height: 1px; margin: 0; left: 0; top: 0; }
+.seg label { cursor: pointer; }
+.seg input { position: absolute; opacity: 0; pointer-events: none; }
+.seg span { display: block; padding: 6px 12px; font-size: 14px; font-weight: 600; color: var(--muted); }
+.seg label + label span { border-left: 1px solid var(--line); }
+.seg input:checked + span { background: var(--accent); color: var(--surface); }
+.seg input:focus-visible + span { outline: 2px solid var(--accent); outline-offset: -2px; }
+.actions { display: flex; flex-wrap: wrap; gap: 6px; margin-left: auto; }
+.btn { border: 1px solid var(--line); background: var(--surface); border-radius: 8px; padding: 6px 12px; font-size: 14px; font-weight: 600; cursor: pointer; }
+.btn:hover { border-color: var(--accent); color: var(--accent); }
+.btn.quiet { color: var(--muted); }
+.toast { font-size: 13.5px; color: var(--muted); min-height: 1.4em; }
+
+.layout { display: grid; grid-template-columns: minmax(0, 1fr) 380px; gap: 22px; align-items: start; margin-top: 18px; }
+@media (max-width: 980px) { .layout { grid-template-columns: minmax(0, 1fr); } .results { order: -1; position: static !important; max-height: none !important; } }
+
+/* Profile (context attributes, not scored) */
+.profile { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; margin-bottom: 18px; }
+.profile > summary, .rules > summary { list-style: none; cursor: pointer; padding: 12px 16px; display: flex; flex-wrap: wrap; gap: 4px 12px; align-items: baseline; }
+.profile > summary::-webkit-details-marker, .rules > summary::-webkit-details-marker { display: none; }
+.profile > summary h2::before, .rules > summary h2::before { content: "▸"; display: inline-block; width: 1.1em; color: var(--muted); transition: transform .15s; }
+.profile[open] > summary h2::before, .rules[open] > summary h2::before { transform: rotate(90deg); }
+.profile > summary .muted { font-size: 14px; }
+.pgrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px 16px; padding: 4px 16px 16px; }
+.pgroup { grid-column: 1 / -1; margin-top: 4px; }
+
+/* Assessment: dimension → capability area cards */
+.group-label { margin: 22px 0 10px; }
+.dim { margin-bottom: 18px; }
+.dim-h { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; margin-bottom: 8px; }
+.dim-h .pg { font-family: var(--mono); font-size: 12px; color: var(--muted); white-space: nowrap; }
+.ca { background: var(--surface); border: 1px solid var(--line); border-left: 6px solid var(--lc); border-radius: 10px; margin-bottom: 10px; }
+.ca > summary { list-style: none; cursor: pointer; padding: 12px 14px; display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 4px 12px; align-items: center; }
+.ca > summary::-webkit-details-marker { display: none; }
+.ca-name { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 10px; }
+.ca-name .nm { font-weight: 700; font-size: 16px; line-height: 1.25; }
+.ca-name .nm::before { content: "▸"; display: inline-block; width: 1em; color: var(--muted); transition: transform .15s; }
+.ca[open] .ca-name .nm::before { transform: rotate(90deg); }
+.ca-name .id { font-family: var(--mono); font-size: 11.5px; color: var(--muted); }
+.badge { font-family: var(--mono); font-size: 11px; border-radius: 999px; padding: 1px 8px; white-space: nowrap; border: 1px solid var(--lc); }
+.chip { font-family: var(--mono); font-size: 12px; border-radius: 999px; padding: 3px 10px; white-space: nowrap; background: var(--sunk); color: var(--muted); }
+.chip[data-l] { background: var(--lc); color: var(--on-l); }
+.ca-sub { grid-column: 1 / -1; font-size: 13.5px; color: var(--muted); }
+.ca-body { padding: 0 14px 14px; display: grid; gap: 14px; }
+.ca-body .def { font-size: 14px; color: var(--muted); }
+.sec-label { font-family: var(--mono); font-size: 11.5px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); margin-bottom: 6px; }
+
+.goal { border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 6px 12px; align-items: center; margin-bottom: 6px; }
+.goal .gt { font-size: 14.5px; line-height: 1.35; }
+.goal .gt b { font-family: var(--mono); font-weight: 500; font-size: 11.5px; color: var(--muted); margin-right: 6px; }
+.goal details { grid-column: 1 / -1; }
+.goal details > summary { cursor: pointer; font-size: 13px; color: var(--accent); list-style: none; }
+.goal details > summary::-webkit-details-marker { display: none; }
+.goal details > summary::before { content: "▸ "; color: var(--muted); }
+.goal details[open] > summary::before { content: "▾ "; }
+.goal ol { margin: 4px 0 0; padding: 0 0 0 4px; list-style: none; display: grid; gap: 3px; }
+.goal ol li { font-size: 13.5px; color: var(--muted); display: flex; gap: 8px; }
+.goal ol li span:first-child { font-family: var(--mono); font-size: 11.5px; flex: none; min-width: 2.4em; }
+.gopt { display: inline-flex; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+.gopt label { cursor: pointer; }
+.gopt input { position: absolute; opacity: 0; pointer-events: none; }
+.gopt span { display: block; padding: 4px 10px; font-size: 13px; font-weight: 600; color: var(--muted); background: var(--bg); }
+.gopt label + label span { border-left: 1px solid var(--line); }
+.gopt input[value="met"]:checked + span { background: var(--l1); color: var(--on-l); }
+.gopt input[value="partly"]:checked + span { background: var(--warn); color: var(--on-l); }
+.gopt input[value="not"]:checked + span { background: var(--muted); color: var(--surface); }
+.gopt input:focus-visible + span { outline: 2px solid var(--accent); outline-offset: -2px; }
+@media (max-width: 560px) { .goal { grid-template-columns: minmax(0, 1fr); } }
+
+.ind { display: grid; gap: 4px; margin-bottom: 10px; }
+.ind-h { display: flex; gap: 8px; align-items: baseline; }
+.ind-h b { font-size: 14.5px; }
+.ind-h .q { font-size: 13px; color: var(--muted); }
+.steps { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 4px; }
+.steps label { cursor: pointer; }
+.steps input { position: absolute; opacity: 0; pointer-events: none; }
+.steps span { display: grid; gap: 0; height: 100%; padding: 5px 7px; border: 1px solid var(--line); border-radius: 6px; background: var(--bg); font-size: 12.5px; line-height: 1.25; color: var(--muted); overflow-wrap: anywhere; hyphens: auto; }
+.steps span b { font-family: var(--mono); font-weight: 500; font-size: 11px; }
+.steps label:hover span { border-color: var(--lc); }
+.steps input:checked + span { background: var(--lc); border-color: var(--lc); color: var(--on-l); }
+.steps input:focus-visible + span { outline: 2px solid var(--accent); outline-offset: 1px; }
+.steps label.over span { opacity: 0.55; }
+.ind .full { font-size: 13px; color: var(--muted); min-height: 1.3em; }
+@media (max-width: 560px) { .steps { grid-template-columns: repeat(5, minmax(56px, 1fr)); overflow-x: auto; } }
+
+/* Results */
+.results { position: sticky; top: 12px; max-height: calc(100vh - 24px); overflow-y: auto; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 16px; display: grid; gap: 16px; }
+.overall { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 4px 14px; align-items: center; }
+.overall .big { grid-row: span 2; width: 74px; height: 74px; border-radius: 14px; display: grid; place-items: center; background: var(--lc, var(--sunk)); color: var(--on-l); font-family: var(--display); font-weight: 700; font-size: 44px; line-height: 1; }
+.overall .big small { display: block; font-family: var(--mono); font-size: 10px; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; text-align: center; margin-bottom: -6px; }
+.overall h2 { font-size: 22px; }
+.overall p { font-size: 14px; color: var(--muted); }
+.ladder { display: flex; gap: 4px; }
+.ladder span { flex: 1; height: 8px; border-radius: 4px; background: var(--sunk); }
+.ladder span.on { background: var(--lc); }
+.ladder span.out { background: transparent; border: 1px dashed var(--line); }
+.progress { font-size: 13.5px; color: var(--muted); }
+
+.dimrows { display: grid; gap: 10px; }
+.dimrow { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 3px 10px; align-items: center; }
+.dimrow .dn { font-size: 14px; font-weight: 600; line-height: 1.25; }
+.dimrow .dl { font-family: var(--mono); font-size: 12px; color: var(--muted); white-space: nowrap; }
+.pips { display: flex; gap: 3px; }
+.pips i { width: 22px; height: 10px; border-radius: 3px; background: var(--sunk); }
+.pips i.on { background: var(--lc); }
+.bar { grid-column: 1 / -1; display: flex; align-items: center; gap: 8px; }
+.bar .track { flex: 1; height: 5px; border-radius: 3px; background: var(--sunk); overflow: hidden; }
+.bar .fill { height: 100%; background: var(--accent); }
+.bar span { font-family: var(--mono); font-size: 11.5px; color: var(--muted); min-width: 7.5em; text-align: right; }
+
+.blockers { display: grid; gap: 8px; }
+.blockers ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.blockers li { font-size: 13.5px; line-height: 1.35; border-left: 3px solid var(--warn); padding: 3px 0 3px 9px; }
+.blockers li a { color: var(--fg); font-weight: 700; text-decoration: none; }
+.blockers li a:hover { text-decoration: underline; }
+.blockers li span { display: block; color: var(--muted); }
+.blockers .ok { border-left-color: var(--l1); }
+
+.rules { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; margin-top: 18px; }
+.rules ol { margin: 0; padding: 0 16px 16px 36px; display: grid; gap: 8px; font-size: 14.5px; max-width: 90ch; }
+.src { font-family: var(--mono); font-size: 11px; border-radius: 999px; padding: 0 7px; margin-right: 4px; white-space: nowrap; }
+.src.book { border: 1px solid var(--accent); color: var(--accent); }
+.src.ours { border: 1px solid var(--warn); color: var(--warn); }
+
+footer { margin-top: 36px; padding-top: 16px; border-top: 1px solid var(--line); font-size: 13.5px; color: var(--muted); display: grid; gap: 6px; max-width: 80ch; }
+
+@media print {
+  .sitetabs, .actions, .toast, .seg-wrap { display: none !important; }
+  body { background: #fff; }
+  .layout { grid-template-columns: minmax(0, 1fr); }
+  .results { position: static; max-height: none; order: -1; }
+  details { display: block; }
+}
+</style>
+</head>
+<body>
+<nav class="sitetabs" aria-label="Pages"><span class="site">AI Adoption Maturity Model<small>Unofficial study aid</small></span><div class="tabs"><a href="index.html">Graph</a><a href="levels.html">By level</a><a href="reference.html">Full list</a><a href="score.html" aria-current="page">Maturity index</a></div></nav>
+<div class="wrap">
+  <header class="top">
+    <span class="eyebrow">AI Adoption Maturity Model · score one unit</span>
+    <h1>Maturity index <span class="v0">v0 · rough draft</span></h1>
+    <p class="lede">For one organizational unit, such as a department: mark which goals it meets in each capability area, and how far its accountability, planning and resourcing go. The level per dimension and overall updates as you go. Answers stay in this browser. Use <b>Save file</b> to keep a copy or share it.</p>
+  </header>
+
+  <section class="session" aria-label="Assessment details">
+    <label class="field f-dept"><span>Unit (department)</span><input id="m-dept" data-meta="dept" placeholder="e.g. Customer Success"></label>
+    <label class="field f-who"><span>Filled in by</span><input id="m-who" data-meta="who"></label>
+    <label class="field f-date"><span>Date</span><input id="m-date" data-meta="date" type="date"></label>
+    <div class="field seg-wrap"><span>Scope</span>
+      <div class="seg" role="radiogroup" aria-label="Scope">
+        <label><input type="radio" name="scope" value="2"><span>Levels 1–2 · 13 areas</span></label>
+        <label><input type="radio" name="scope" value="3"><span>Levels 1–3 · 23 areas</span></label>
+      </div>
+    </div>
+    <div class="actions">
+      <button class="btn" id="b-copy" type="button">Copy summary</button>
+      <button class="btn" id="b-save" type="button">Save file</button>
+      <button class="btn" id="b-open" type="button">Open file</button>
+      <button class="btn quiet" id="b-clear" type="button">Start over</button>
+      <input id="f-open" type="file" accept="application/json,.json" hidden>
+    </div>
+    <p class="toast" id="toast" role="status" aria-live="polite"></p>
+  </section>
+
+  <div class="layout">
+    <main>
+      <details class="profile" id="profile">
+        <summary><h2>Unit profile</h2><span class="muted">Context attributes (Table 1, p. 27). Not scored. They help decide which areas matter most for this unit.</span></summary>
+        <div class="pgrid" id="pgrid"></div>
+      </details>
+      <div id="assess"></div>
+      <details class="rules" id="rules">
+        <summary><h2>How it's scored</h2><span class="muted">What comes from the book, and what this draft assumes</span></summary>
+        <ol>
+          <li><span class="src book">Book p. 87</span>A capability area is rated at its <b>lowest</b> maturity indicator (Accountability, Planning, Resourcing), even if all its goals are met.</li>
+          <li><span class="src book">Book p. 87</span>A dimension is rated at its <b>lowest</b> capability area. <span class="src ours">Assumption</span>Only areas inside the chosen scope count.</li>
+          <li><span class="src ours">Assumption</span>An area counts above Level 1 only when <b>every</b> goal is marked <i>Met</i>. A goal marked <i>Partly</i> or <i>Not met</i> holds the area at Level 1. The book makes goals required but doesn't say how they combine with the indicators.</li>
+          <li><span class="src book">Table 2, p. 85</span>The unit is at Level N when every capability area Table 2 requires at Level N and below is rated N or higher. <span class="src ours">Assumption</span>Level 1 is the starting point, so every unit is at least Level 1 (the same reading as the By level page).</li>
+          <li><span class="src ours">Assumption</span>Unanswered questions count as not met, so the level only rises with answers. The progress line shows how much is still open.</li>
+          <li><span class="src ours">Not in the book</span><b>Goal completeness</b> per dimension: Met counts 1, Partly ½, Not met or unanswered 0, across in-scope goals. It shows progress that the weakest-link level hides.</li>
+          <li><span class="src book">§5.1, p. 87</span>The book rates from several kinds of evidence (assessor judgement, surveys, artifacts). This draft takes one person's answers and an optional evidence note per area.</li>
+        </ol>
+      </details>
+    </main>
+    <aside class="results" id="results" aria-label="Results" aria-live="polite"></aside>
+  </div>
+
+  <footer>
+    <p>Unofficial study aid. Condensed from <i>The AI Adoption Maturity Model v1.0</i> by the Software Engineering Institute (SEI) at Carnegie Mellon University and Accenture. The model and its content are © 2026 Carnegie Mellon University. Wording is paraphrased; see the original publication for the authoritative text. Not affiliated with or endorsed by Carnegie Mellon University, SEI or Accenture.</p>
+    <p>This scoring page is a rough first version for trying the model on a real unit. It is not SEI's assessment method, which the book describes as expert-led (Section 5.1).</p>
+  </footer>
+</div>
+
+<script>
+const DIMS = [{"dimension":"Organizational Strategy","section":"4.4","bookPages":"33–40","group":"Organizational Change","capabilityAreas":[{"id":"4.4.1","name":"AI Strategy Development","bookPage":33,"level":2,"definition":"Defining how AI supports business outcomes through a realistic, evolvable, executable AI strategy.","goals":[{"n":1,"summary":"Define a clear AI adoption scope aligned with mission, vision, and business objectives.","practices":[{"n":1,"summary":"Identify and involve stakeholders relevant to the potential AI adoption scope."},{"n":2,"summary":"Identify business goals and requirements relevant to AI adoption."},{"n":3,"summary":"State AI adoption goals clearly with objective, quantifiable outcomes."},{"n":4,"summary":"Align adoption with business objectives, values, and principles (safety, human-centered, responsible use)."}]},{"n":2,"summary":"Establish a strategy for adopting AI within the defined scope.","practices":[{"n":1,"summary":"Identify strategy goals, evaluation criteria, and milestones."},{"n":2,"summary":"Document the AI strategy."},{"n":3,"summary":"Communicate strategy, milestones, and success criteria to affected stakeholders."},{"n":4,"summary":"Track performance and progress against the strategy, e.g., within existing governance."}]},{"n":3,"summary":"Regularly assess AI adoption progress against business goals, values, and principles per the strategy.","practices":[{"n":1,"summary":"Set up a process to assess and share progress against values, goals, and principles."},{"n":2,"summary":"Review the strategy periodically so it stays current and reflects positive or negative outcomes."},{"n":3,"summary":"Use assessment outcomes to realign AI initiatives and strategy with business goals and values."},{"n":4,"summary":"Evolve the strategy with follow-on actions as initiatives show positive or negative results."}]}]},{"id":"4.4.2","name":"AI Partnership Development","bookPage":34,"level":3,"definition":"Selecting and continuously evaluating partners for alignment with organizational and AI strategy.","goals":[{"n":1,"summary":"Maintain awareness of the evolving AI industry and related ecosystems.","practices":[{"n":1,"summary":"Set AI-specific partner and third-party requirements matching culture and risk appetite."},{"n":2,"summary":"Assess AI market trends, new versions, and technologies regularly."},{"n":3,"summary":"Assess evolution of supporting technologies in the AI stack for relevance."},{"n":4,"summary":"Identify potential partners and their capabilities in the industry or community."},{"n":5,"summary":"Review and share industry and partner landscape with internal stakeholders."}]},{"n":2,"summary":"Engage external partners and vendors whose AI capabilities fit adoption goals.","practices":[{"n":1,"summary":"Choose acquisition approach for AI data, models, solutions (buy, fine-tune, build)."},{"n":2,"summary":"Identify external enablers that complement rather than duplicate existing AI capabilities."},{"n":3,"summary":"Evaluate vendors on data sharing, security, responsible AI, suitability against strategy and risk appetite."},{"n":4,"summary":"Define licensing requirements and other AI solution costs."},{"n":5,"summary":"Select vendors and services based on ability to meet scaling and other requirements."}]},{"n":3,"summary":"Review contracts and relationship mechanisms for consistency with AI adoption goals.","practices":[{"n":1,"summary":"Form contracts that preserve flexibility and control, avoiding vendor lock-in."},{"n":2,"summary":"Define ownership of data, models, systems, and artifacts in contracts."},{"n":3,"summary":"Define performance expectations, acceptance criteria, and measurements for partners and external AI solutions."},{"n":4,"summary":"Cover vendor non-performance in contract breach and remediation language."}]}]},{"id":"4.4.3","name":"Organizational Structure Calibration","bookPage":36,"level":3,"definition":"Examining current organizational processes and structures and aligning them to support AI adoption.","goals":[{"n":1,"summary":"Assess organizational processes to identify changes or new processes needed to manage AI adoption.","practices":[{"n":1,"summary":"Identify organizational and technology processes relevant to AI adoption."},{"n":2,"summary":"Review process and AI strategy alignment regularly for changing business needs."},{"n":3,"summary":"Add or change organizational processes based on the review."},{"n":4,"summary":"Evaluate and update change management processes for AI impacts."}]},{"n":2,"summary":"Proactively assess organizational structure for supporting AI design, development, deployment, monitoring, and operations.","practices":[{"n":1,"summary":"Determine personnel, partners, and workflows tied to AI initiatives."},{"n":2,"summary":"Map ownership and responsibility for personnel, partners, workflows to the structure."},{"n":3,"summary":"Review structural effectiveness in executing AI initiatives and achieving goals and ROI."},{"n":4,"summary":"Revise the organizational structure to improve AI adoption progress."}]}]},{"id":"4.4.4","name":"Future Ready Planning","bookPage":37,"level":5,"definition":"Preparing for possible futures via analytic models and outreach to build strategic AI capability roadmaps.","goals":[{"n":1,"summary":"Establish and maintain analytic methods for planning, monitoring, developing, testing, and deploying AI capabilities.","practices":[{"n":1,"summary":"Maintain analytic methods (causal, statistical, simulation) measuring AI capability effectiveness against business objectives."},{"n":2,"summary":"Use models to monitor routine AI use and predict outcomes and failure rates."},{"n":3,"summary":"Use analytics to find capability improvement areas and evaluate proposed changes."},{"n":4,"summary":"Apply analytics to root cause analysis to prevent failures."},{"n":5,"summary":"Validate model accuracy periodically by comparing predictions with actual results."}]},{"n":2,"summary":"Update the AI strategy periodically to position the organization across multiple futures and time horizons.","practices":[{"n":1,"summary":"Maintain possible future scenarios for environment, risks, and AI capabilities."},{"n":2,"summary":"Gather improvement ideas from internal and external sources."},{"n":3,"summary":"Develop candidate organizational roadmaps from inputs."},{"n":4,"summary":"Evaluate alternative roadmaps with analytic models, including estimated time and cost."},{"n":5,"summary":"Select resilient roadmaps and document them in an updated AI Strategy."}]},{"n":3,"summary":"Establish AI community outreach and collaborations that shape communities and support long-term vision.","practices":[{"n":1,"summary":"Develop collaborations with thought-leader organizations (academia, industry, authorities)."},{"n":2,"summary":"Share best practices and experiences to improve and influence the community."},{"n":3,"summary":"Identify developments and future directions to consider for strategy and capabilities."}]}]}]},{"dimension":"Workforce and Culture","section":"4.5","bookPages":"41–44","group":"Organizational Change","capabilityAreas":[{"id":"4.5.1","name":"AI-Literate Workforce Development","bookPage":41,"level":1,"definition":"Select and develop qualified staff with the skills and knowledge to use AI effectively in their work.","goals":[{"n":1,"summary":"Roles and competencies (knowledge, skills, abilities) supporting AI adoption are identified and documented.","practices":[{"n":1,"summary":"Identify roles, competencies, and skills needed to support AI adoption in the unit."},{"n":2,"summary":"Build training completion and AI competencies into workforce management and career progression ladders."},{"n":3,"summary":"Benchmark staff skills against industry or community peers, informally or formally."}]},{"n":2,"summary":"Training is delivered to develop and maintain AI-related competencies.","practices":[{"n":1,"summary":"Establish training requirements and processes for AI-related roles."},{"n":2,"summary":"Create or acquire AI-related training."},{"n":3,"summary":"Deliver the training."},{"n":4,"summary":"Enforce compliance with training requirements."}]}]},{"id":"4.5.2","name":"Organizational Culture Evolution","bookPage":42,"level":3,"definition":"Establish a proactive, AI-native culture through HR processes and communication that shift how the organization operates.","goals":[{"n":1,"summary":"An open, participative, collaborative, learning-oriented culture is established.","practices":[{"n":1,"summary":"Sustain an open, collaborative environment where AI strategy is co-developed and experimentation is encouraged."},{"n":2,"summary":"Communicate business values and regularly reinforce key AI adoption messages."},{"n":3,"summary":"Gather and analyze stakeholder perceptions of AI initiatives, including those affected by AI outputs."}]},{"n":2,"summary":"Staff aligned with the unit's AI culture are acquired and developed.","practices":[{"n":1,"summary":"Recruit, hire, and transition staff (incl. internal) able to fill key AI-related roles."},{"n":2,"summary":"Recognize and reward contributions to AI adoption goals and AI-native culture."},{"n":3,"summary":"Enable staff to rapidly gain skills when taking on new AI-related roles."},{"n":4,"summary":"Assess adoption strategy and performance to spot jobs and skills likely to become obsolete."},{"n":5,"summary":"Re-skill staff as needed to support AI adoption."}]},{"n":3,"summary":"Workforce preparation for AI adoption is monitored and managed.","practices":[{"n":1,"summary":"Track work performance on AI projects to identify near-term skills development needs."},{"n":2,"summary":"Include AI adoption performance and support in staff goals and objectives."},{"n":3,"summary":"Revise or create career tracks in AI areas key to future work."}]}]}]},{"dimension":"Workflow Re-Engineering","section":"4.6","bookPages":"45–51","group":"Organizational Change","capabilityAreas":[{"id":"4.6.1","name":"Experimentation","bookPage":45,"level":1,"definition":"Ability to experiment with AI use cases to design, run, and evaluate AI-powered workflows.","goals":[{"n":1,"summary":"Create proofs of concept to confirm expectations, engage stakeholders, and surface risks.","practices":[{"n":1,"summary":"Identify business and workflow objectives and opportunities."},{"n":2,"summary":"Identify use cases and proofs of concept."},{"n":3,"summary":"Define minimal viable AI functionality through iteration."},{"n":4,"summary":"Check proofs of concept against compliance and enterprise requirements for alignment."},{"n":5,"summary":"Define deployment readiness criteria covering performance, risk controls, and user readiness."}]},{"n":2,"summary":"Run operational experiments validating proofs of concept, use cases, and their technical and business risks.","practices":[{"n":1,"summary":"Plan and communicate experiment design: participants, tasks, and success criteria."},{"n":2,"summary":"Provide a representative sandbox environment for testing and data collection across experiments."},{"n":3,"summary":"Collect qualitative and quantitative performance data to refine the proof of concept."},{"n":4,"summary":"Analyze findings into prioritized recommendations for deployment and scaling."}]}]},{"id":"4.6.2","name":"Business Workflow Innovation","bookPage":46,"level":3,"definition":"Ability to rethink and redesign business processes to leverage AI for better value outcomes and ROI.","goals":[{"n":1,"summary":"Identify and prioritize workflows where AI can create efficiencies and improvements.","practices":[{"n":1,"summary":"Identify and document workflows and processes within the intended AI adoption scope."},{"n":2,"summary":"Analyze candidate processes for efficiency, such as non-value steps, cost drivers, KPIs, history."},{"n":3,"summary":"Evaluate whether non-AI process optimization could meet objectives before investing in AI."},{"n":4,"summary":"Prioritize workflows for AI adoption by estimated improvement and ROI against goals."}]},{"n":2,"summary":"Assess prioritized workflows for risk and appropriateness of applying AI.","practices":[{"n":1,"summary":"Identify requirements and KPIs for prioritized business processes."},{"n":2,"summary":"Identify AI use cases and application instances supporting prioritized workflows."},{"n":3,"summary":"Conduct technical reviews of AI applicability, including data volume, velocity, variety, veracity, value, and risks."}]},{"n":3,"summary":"Validate AI-enabled workflows for operational scaling.","practices":[{"n":1,"summary":"Define operational ownership and support responsibilities for AI-enabled workflows."},{"n":2,"summary":"Validate upstream and downstream integration, with fallback, exception handling, and escalation for AI failures."},{"n":3,"summary":"Clarify agent-human handoffs in agentic workflows and implications for structure and responsibilities."},{"n":4,"summary":"Update AI requirements and controls periodically or on change, based on workflow risks."}]}]},{"id":"4.6.3","name":"Human-in-the-Lead Automation","bookPage":48,"level":3,"definition":"Ability to design AI systems keeping human accountability, oversight, and judgment over decisions affecting people.","goals":[{"n":1,"summary":"Design workflows that empower humans through assistance, augmentation, or autonomy via understandable interfaces.","practices":[{"n":1,"summary":"Design human-centered workflows and interfaces giving humans decision oversight and accountability."},{"n":2,"summary":"Communicate human versus AI responsibility for outcomes and enforce ethical, responsible AI use."},{"n":3,"summary":"Collect user feedback on usability, trustworthiness, correctness, and value, and feed it into the system."},{"n":4,"summary":"Review AI performance and audit automated actions to find issues undermining human leadership."}]},{"n":2,"summary":"Implement oversight for critical decisions.","practices":[{"n":1,"summary":"Define critical, irreversible decision points needing enhanced, continuous, or specific human oversight."},{"n":2,"summary":"Define how AI failure would affect critical and irreversible decisions' processes or outcomes."},{"n":3,"summary":"Establish oversight and control mechanisms for human actions at critical decision points."}]}]},{"id":"4.6.4","name":"Measurement and Analysis","bookPage":49,"level":3,"definition":"Ability to measure and analyze the effectiveness and performance of AI-enabled workflows and initiatives.","goals":[{"n":1,"summary":"Identify measurement objectives, success criteria, and activities for AI-enabled workflows and business goals.","practices":[{"n":1,"summary":"Establish and maintain measurement objectives derived from workflow goals and unit objectives."},{"n":2,"summary":"Specify activities for measuring AI-native workflows against organizational unit objectives."},{"n":3,"summary":"Obtain and store measurement data."}]},{"n":2,"summary":"Provide measurement results for AI-enabled workflows.","practices":[{"n":1,"summary":"Analyze and interpret collected measurement data."},{"n":2,"summary":"Determine the appropriate method for communicating results."},{"n":3,"summary":"Establish measurement dashboards for project, division, and management-level needs."},{"n":4,"summary":"Define frequency and methodology for future measurements."}]}]}]},{"dimension":"Risk and Governance","section":"4.7","bookPages":"52–57","group":"Organizational Change","capabilityAreas":[{"id":"4.7.1","name":"Risk Management","bookPage":52,"level":2,"definition":"Identify, understand, and disposition AI-related risks in line with the unit's culture, requirements, and risk tolerance.","goals":[{"n":1,"summary":"Identify, evaluate, and communicate risks arising from the unit's AI adoption.","practices":[{"n":1,"summary":"Identify risk categories affected by AI adoption (operational, compliance, reputational, third-party, security, privacy)."},{"n":2,"summary":"Evaluate existing risks that may grow or constrain AI adoption."},{"n":3,"summary":"Adjust risk tolerance and appetite in affected domains where appropriate."},{"n":4,"summary":"Define and communicate acceptable risk levels per category, including AI-inherent risks."},{"n":5,"summary":"Change risk management in impacted domains as appropriate."}]},{"n":2,"summary":"Establish an AI risk management process.","practices":[{"n":1,"summary":"Integrate AI risk management into existing risk frameworks and EGRC systems."},{"n":2,"summary":"Define and communicate expected controls for AI-specific areas (explainability, bias, prompt filtering, identity)."},{"n":3,"summary":"Identify AI-related risks during routine operational activities."},{"n":4,"summary":"Assess AI-related risks and findings."},{"n":5,"summary":"Disposition AI risks (mitigate, accept, transfer, monitor)."}]},{"n":3,"summary":"Independently test the effectiveness of expected AI-adoption controls.","practices":[{"n":1,"summary":"Identify expected controls for AI risks per the unit's tolerance or guidance."},{"n":2,"summary":"Adjust risk tolerance and appetite in impacted domains where appropriate."},{"n":3,"summary":"Test the design and effectiveness of expected controls."},{"n":4,"summary":"Use test results to find risks, fix control gaps, or add controls."}]}]},{"id":"4.7.2","name":"Policy and Compliance","bookPage":54,"level":2,"definition":"Establish and follow relevant policies, adopt domain-appropriate AI standards, and meet compliance obligations.","goals":[{"n":1,"summary":"Align the unit's policies with AI adoption.","practices":[{"n":1,"summary":"Identify existing policies across domains (technology, HR, vendor management) relevant to AI."},{"n":2,"summary":"Evaluate relevant policies for changes needed by AI priorities or strategy."},{"n":3,"summary":"Implement policy changes and create new policies as indicated."},{"n":4,"summary":"Include AI risk and priority evaluation in formal periodic policy reviews."}]},{"n":2,"summary":"Manage compliance with industry standards, regulations, and contractual obligations.","practices":[{"n":1,"summary":"Identify how AI adoption plans affect compliance with existing regulations and standards."},{"n":2,"summary":"Identify new regulatory requirements or industry standards relating to AI."},{"n":3,"summary":"Update processes, practices, and controls to meet AI-related regulations and standards."},{"n":4,"summary":"Monitor and manage AI-related compliance."}]}]},{"id":"4.7.3","name":"Responsible AI","bookPage":55,"level":2,"definition":"Define and enforce responsible AI development and use consistent with mission, technology dependence, stakeholders, and risk appetite.","goals":[{"n":1,"summary":"Identify stakeholders who will be affected by AI adoption.","practices":[{"n":1,"summary":"Identify user, stakeholder, citizen, and system populations the unit's AI may affect."},{"n":2,"summary":"Identify requirements specific to affected populations (jurisdiction, vulnerable groups)."},{"n":3,"summary":"Consider resource impacts of AI adoption such as energy use and sustainability."},{"n":4,"summary":"Evaluate relevant societal and legal norms and rules to consider."}]},{"n":2,"summary":"Define the unit's approach to responsible AI.","practices":[{"n":1,"summary":"Identify stakeholder-relevant services and products impacted by AI adoption."},{"n":2,"summary":"Identify risks to stakeholders inherent in those products and services."},{"n":3,"summary":"Establish responsible AI principles to focus on (privacy, transparency, bias, fair treatment)."}]},{"n":3,"summary":"Implement the unit's responsible AI approach.","practices":[{"n":1,"summary":"Communicate the responsible AI approach to internal and external stakeholders."},{"n":2,"summary":"Identify policies, processes, and controls that enforce the responsible AI approach."},{"n":3,"summary":"Change or establish policies, processes, and controls across AI development and operation."},{"n":4,"summary":"Review the approach as technology and use cases evolve, and communicate alignment."}]}]}]},{"dimension":"Data","section":"4.8","bookPages":"58–62","group":"AI Lifecycle Engineering","capabilityAreas":[{"id":"4.8.1","name":"Data Lifecycle Management","bookPage":58,"level":2,"definition":"Acquire data that is fit for purpose and relevant to the organization's use cases and workflows.","goals":[{"n":1,"summary":"Acquire relevant data and maintain provenance for all of it.","practices":[{"n":1,"summary":"Identify, collect, acquire or create data supporting AI development, operation and testing for business workflows."},{"n":2,"summary":"Document the sources and categories of data that AI initiatives may ingest."},{"n":3,"summary":"Track datasets and linked AI solutions across initiatives to keep contextual provenance."},{"n":4,"summary":"Version datasets and document transformations, processing, retention and disposal steps."},{"n":5,"summary":"Engage subject matter experts to confirm data sources are relevant and appropriate for the use case."},{"n":6,"summary":"Maintain and provide access to current dataset descriptions, data cards, dictionaries, metadata and ontologies."}]},{"n":2,"summary":"Assign data stewardship to formalize responsibility for data and its lifecycle.","practices":[{"n":1,"summary":"Document and mark systems and data sources that hold authoritative records."},{"n":2,"summary":"Assign owners and subject matter experts to data sources or categories."},{"n":3,"summary":"Specify the responsibilities of data owners and subject matter experts."}]},{"n":3,"summary":"Maintain data privacy and security throughout the data lifecycle.","practices":[{"n":1,"summary":"Identify and classify sensitive data (personal, PII, health, company) per regulations and norms."},{"n":2,"summary":"Restrict data access by sensitivity, need-to-know and least privilege."},{"n":3,"summary":"Maintain incident response and mitigation plans for data leaks from AI models, agents or workflows."},{"n":4,"summary":"Protect data with controls matched to organizational threats and AI architectures (e.g., API or vendor reliance)."},{"n":5,"summary":"Maintain controls ensuring compliance with data subject rights, such as restriction and erasure."},{"n":6,"summary":"Identify and control privacy risks from AI data aggregation and analysis."}]}]},{"id":"4.8.2","name":"Data Quality Assurance","bookPage":60,"level":2,"definition":"Ensure data supporting AI work is and stays fit for purpose, organized, reliable and usable across the AI lifecycle.","goals":[{"n":1,"summary":"Identify requirements for data quality.","practices":[{"n":1,"summary":"Engage stakeholders to define data quality needs and content expectations."},{"n":2,"summary":"Evaluate data for issues that could cause unwanted outcomes or harms."},{"n":3,"summary":"Assess data for inherent bias and document significant considerations for the intended use."},{"n":4,"summary":"Identify potential harms from misuse of data, data combinations or the AI system, and decide dispositions."}]},{"n":2,"summary":"Prepare structured and unstructured data in AI systems for appropriate use.","practices":[{"n":1,"summary":"Confirm data relevancy and appropriateness for the intended use case."},{"n":2,"summary":"Supply key contextual data to the operational system (prompts, RAG lookup, agents)."},{"n":3,"summary":"Normalize structured data with common formats and store novel data points for later analysis."},{"n":4,"summary":"Split data into training, test and validation sets while preserving variation across them (traditional ML)."},{"n":5,"summary":"Make unstructured data reliable, usable and governable via standard formats, labels and metadata."}]}]}]},{"dimension":"Engineering","section":"4.9","bookPages":"63–69","group":"AI Lifecycle Engineering","capabilityAreas":[{"id":"4.9.1","name":"AI Architecting","bookPage":63,"level":2,"definition":"Develop and integrate AI components and AI-enabled systems that meet business needs and required quality attributes.","goals":[{"n":1,"summary":"Build maintainable AI-enabled system architectures that satisfy stakeholder requirements.","practices":[{"n":1,"summary":"Elicit and document stakeholder requirements for architectures serving short- and long-term AI needs."},{"n":2,"summary":"Define a technology-stack reference architecture governing AI implementation and cross-ecosystem interactions, including external partners."},{"n":3,"summary":"Connect new AI systems to existing ones via defined standards and APIs, favoring industry standards."}]},{"n":2,"summary":"Address security and operational risks within the system architecture.","practices":[{"n":1,"summary":"Maintain information on expected data flows involving AI systems and agents."},{"n":2,"summary":"Include AI security specifications in designs (monitoring, data-flow control, short-lived credentials)."},{"n":3,"summary":"Define and integrate AI agent identity, access management, authentication and authorization to control risk."},{"n":4,"summary":"Segment access and apply separation of duties to agents by role and identity."}]},{"n":3,"summary":"Consider the scalability needs of AI solutions in system design.","practices":[{"n":1,"summary":"Define how resources scale vertically or horizontally to meet user and AI workload expectations."},{"n":2,"summary":"Determine how resource demand (storage, inference, networking) for intended scale is assessed, supported and communicated."}]}]},{"id":"4.9.2","name":"Test and Evaluation","bookPage":64,"level":2,"definition":"Perform verification and validation showing AI solutions meet technical requirements and support business goals.","goals":[{"n":1,"summary":"Perform AI-specific testing on AI functionality beyond routine software testing.","practices":[{"n":1,"summary":"Identify the AI-specific functionalities that should be tested."},{"n":2,"summary":"Test AI functionalities in an appropriately isolated environment when needed."},{"n":3,"summary":"Conduct usability and user acceptance testing of AI solutions, adapting existing UAT as needed."},{"n":4,"summary":"Apply regression and integration testing on AI capabilities to ensure safe legacy interactions."},{"n":5,"summary":"Define specialized tests for AI-specific issues such as data drift and hallucinations."}]},{"n":2,"summary":"Track and document whether AI solutions perform to expected quality levels.","practices":[{"n":1,"summary":"Define a method to baseline and validate outputs of non-deterministic AI functionality."},{"n":2,"summary":"Make system and process owners aware of test results and their repeatability."},{"n":3,"summary":"Ensure AI functionality testing, including generative output, can be automated."},{"n":4,"summary":"Track changes made in response to test outcomes over time and retest as appropriate."}]}]},{"id":"4.9.3","name":"Legacy Integration","bookPage":66,"level":3,"definition":"Assemble AI-enabled products and workflows that enhance legacy systems and work with existing tools, data and infrastructure.","goals":[{"n":1,"summary":"Integrate AI components with legacy systems using sound architecture and interoperability.","practices":[{"n":1,"summary":"Elicit system-level needs and quality attributes from stakeholders for legacy integration."},{"n":2,"summary":"Evaluate AI components' integrability with legacy systems, including suitability of agentic AI."},{"n":3,"summary":"Identify legacy integration points for AI components being built or onboarded."},{"n":4,"summary":"Assess technology stack and equipment gaps, including hardware, infrastructure and AI component access."},{"n":5,"summary":"Design data processing to capture production data for analysis, testing and training."}]},{"n":2,"summary":"Manage the legacy system lifecycle continuously to enable seamless AI integration.","practices":[{"n":1,"summary":"Update existing reference architectures to include AI components."},{"n":2,"summary":"Update legacy libraries and APIs regularly for latest capabilities and security patches."},{"n":3,"summary":"Retire outdated systems to optimize investment, support AI adoption and reduce EOL/EOS risk."}]}]},{"id":"4.9.4","name":"Transparency and Explainability","bookPage":67,"level":3,"definition":"Ensure AI systems give understandable, use-case-appropriate explanations and traceability, including agentic behavior.","goals":[{"n":1,"summary":"Identify transparency and explainability requirements for AI solutions.","practices":[{"n":1,"summary":"Elicit and document explainability and traceability requirements from stakeholders, including engineering teams."},{"n":2,"summary":"Elicit and document end-user explainability and understandability requirements to support trustworthy systems."}]},{"n":2,"summary":"Explicitly address transparency, explainability and understandability in AI solution designs.","practices":[{"n":1,"summary":"Follow defined protocols for components to expose traceability and explainability of decisions."},{"n":2,"summary":"Establish mechanisms to track and log explainability-related attributes."},{"n":3,"summary":"Design component interactions to expose transparency and explainability attributes."}]},{"n":3,"summary":"Provide explanations that are relevant and effective for end users.","practices":[{"n":1,"summary":"Identify confusing content or outputs and decide when, where and how to explain them."},{"n":2,"summary":"Apply interaction design and gather end-user feedback to validate explanations are understandable and useful."}]}]}]},{"dimension":"Operations","section":"4.10","bookPages":"70–74","group":"AI Lifecycle Engineering","capabilityAreas":[{"id":"4.10.1","name":"AI Model Management","bookPage":70,"level":2,"definition":"Managing the lifecycle of AI models, including their decommissioning.","goals":[{"n":1,"summary":"Model version used for inference is tracked and controllable at the operational end point.","practices":[{"n":1,"summary":"Version-control models, related AI/software components and datasets, and track data and model lineage."},{"n":2,"summary":"Archive previous model versions and make them available through an API."},{"n":3,"summary":"Use a serving framework that swaps models with minimal unintended consequences."}]},{"n":2,"summary":"Changes to model availability are documented and communicated clearly to relevant stakeholders.","practices":[{"n":1,"summary":"Maintain a stable retraining process that authorized users can run."},{"n":2,"summary":"Define conditions that automatically retrigger retraining based on monitored values."},{"n":3,"summary":"Archive generative AI artifacts and metadata (version, parameters, prompts, seeds) for consistent performance as models evolve."}]},{"n":3,"summary":"Gated evaluation conditions are met before models are released for AI initiatives or solutions.","practices":[{"n":1,"summary":"Run an initiative-defined model test suite during the model release process."},{"n":2,"summary":"Define and implement AI solution tests that detect changes to solutions."},{"n":3,"summary":"Assess and disposition risks of deploying or changing a model."}]}]},{"id":"4.10.2","name":"AI Model and Agent Security","bookPage":71,"level":2,"definition":"Securing AI solutions, agents and data to reduce operational risk, protect integrity, and control agent actions.","goals":[{"n":1,"summary":"Models and agents are protected against compromise of code, model, or data integrity.","practices":[{"n":1,"summary":"Implement integrity controls (code signing, provenance) in AI solution pipelines."},{"n":2,"summary":"Apply heightened access scrutiny (PIM, MFA, RBAC/ABAC) to entitlements affecting pipelines and production."},{"n":3,"summary":"Ensure integrity and security controls, including cybersecurity practices, for technology supporting AI solutions."}]},{"n":2,"summary":"Actions by AI models and agents are monitored and controlled.","practices":[{"n":1,"summary":"Identify and define allowable entitlements for models, agents, and systems."},{"n":2,"summary":"Apply identity and access management to non-human entities (service accounts, AI agents)."},{"n":3,"summary":"Define and implement monitoring and analytics of agent actions within AI-solution monitoring."}]}]},{"id":"4.10.3","name":"Monitoring","bookPage":72,"level":3,"definition":"Observing AI-specific behavior of deployed systems and collecting performance and execution data.","goals":[{"n":1,"summary":"Actionable information about solutions in operation is collected and used.","practices":[{"n":1,"summary":"Establish monitoring requirements (performance, drift, degradation, usage) for AI solutions."},{"n":2,"summary":"Capture user feedback on product performance and model functionality."},{"n":3,"summary":"Collect and store monitoring output for system and human review."},{"n":4,"summary":"Use monitoring results to improve AI solutions."},{"n":5,"summary":"Implement continuous monitoring for agentic and autonomous solutions."}]},{"n":2,"summary":"Failures in AI solutions are detected and dispositioned.","practices":[{"n":1,"summary":"Establish an incident response plan covering detection, correlation, escalation, and response to AI events and failures."},{"n":2,"summary":"Generate automatic failure alerts for recurring scheduled data pipelines."},{"n":3,"summary":"Document roles, responsibilities, and communication channels for responding to AI failures."}]},{"n":3,"summary":"Operational data for legal, compliance, accounting, and audit uses is collected.","practices":[{"n":1,"summary":"Monitor AI system use to detect inappropriate use."},{"n":2,"summary":"Collect evidence of regulatory compliance."},{"n":3,"summary":"Collect cost and revenue data alongside model outputs to support ROI analysis."}]}]}]},{"dimension":"Technology Ecosystem","section":"4.11","bookPages":"75–79","group":"AI Lifecycle Engineering","capabilityAreas":[{"id":"4.11.1","name":"Technology Infrastructure","bookPage":75,"level":2,"definition":"Providing technology infrastructure that supports the long-term success of AI initiatives.","goals":[{"n":1,"summary":"Infrastructure requirements for supporting AI initiatives are defined.","practices":[{"n":1,"summary":"Elicit and document infrastructure and compute needs for AI, such as storage, bandwidth, accelerators."},{"n":2,"summary":"Assess infrastructure options for trade-offs on AI service-level concerns such as availability, security, data control."},{"n":3,"summary":"Reassess and update infrastructure requirements periodically as AI solutions and technologies evolve."}]},{"n":2,"summary":"Technology infrastructure for AI initiatives is provided.","practices":[{"n":1,"summary":"Plan and allocate technology infrastructure."},{"n":2,"summary":"Make infrastructure resources available to teams for testing and implementing AI solutions."},{"n":3,"summary":"Measure and report infrastructure performance and cost, including usage, maintenance, service, token limits."}]},{"n":3,"summary":"A proactive technology refresh strategy is established.","practices":[{"n":1,"summary":"Collect and analyze data on AI technologies and infrastructure to inform lifecycle and refresh decisions."},{"n":2,"summary":"Define clear timelines for proactively updating AI solutions and AI-relevant technologies."},{"n":3,"summary":"Upgrade libraries, AI solutions, APIs, infrastructure, and software, resolving vulnerabilities and cybersecurity risks."}]}]},{"id":"4.11.2","name":"Supply Chain Management","bookPage":76,"level":3,"definition":"Identifying, analyzing, and managing supply chain and third-party dependencies of AI systems and products.","goals":[{"n":1,"summary":"An inventory of third-party vendors and dependencies, including AI-related ones, is maintained.","practices":[{"n":1,"summary":"Maintain an inventory of third parties supplying AI data, models, solutions, and tooling, onboarded or externally hosted."},{"n":2,"summary":"Prioritize third parties by criticality, impact on AI goals, and risk appetite."},{"n":3,"summary":"Track AI-relevant details in the inventory, such as foundation model use, data practices, hosting location, nth parties."},{"n":4,"summary":"Update the list of third parties and dependencies periodically."}]},{"n":2,"summary":"Third parties and suppliers are assessed against organizational requirements and risk appetite for AI.","practices":[{"n":1,"summary":"Identify and track third-party requirements such as data sharing, security, responsible AI, model fitness."},{"n":2,"summary":"Monitor or assess third-party performance against requirements and contracts, based on prioritization."},{"n":3,"summary":"Establish workarounds and termination plans for third-party failures, based on risk and criticality."}]},{"n":3,"summary":"External data dependencies are managed.","practices":[{"n":1,"summary":"Identify and track AI data originating outside internal data management, including non-traditional sources."},{"n":2,"summary":"Integrate external data sources into the organization's third-party management."},{"n":3,"summary":"Track and apply data management practices to data collected through third-party services."}]}]},{"id":"4.11.3","name":"Deployment at Scale","bookPage":77,"level":4,"definition":"Deploying and scaling technology and AI solutions organization-wide, maximizing ROI and minimizing change risk.","goals":[{"n":1,"summary":"Scaling AI solutions across the organization is planned and properly documented.","practices":[{"n":1,"summary":"Identify AI solutions that add organization-wide value and plan scaled deployments."},{"n":2,"summary":"Identify and manage organizational and technology change risks from scaling, including cost and performance."},{"n":3,"summary":"Inventory existing solutions to rationalize, transition, and decommission duplicates ahead of scaling."},{"n":4,"summary":"Identify the technology changes required for the solutions planned to scale."},{"n":5,"summary":"Evaluate progress of current AI deployments, including operations and maintenance in scaling."}]},{"n":2,"summary":"Performance and reliability targets for AI solutions are established and met.","practices":[{"n":1,"summary":"Establish SLAs and service-level objectives (SLOs) for AI solutions."},{"n":2,"summary":"Manage capacity according to the criticality of scaled solutions."},{"n":3,"summary":"Use practices that let AI solutions keep providing service under varying conditions."},{"n":4,"summary":"Notify stakeholders proactively of system outages."},{"n":5,"summary":"Maintain business continuity plans, deployment plans, and dependencies to guide seamless operation of scaled solutions."}]}]}]}];
+
+const LEVELS = [
+  { n: 1, name: "Exploratory AI" },
+  { n: 2, name: "Implemented AI" },
+  { n: 3, name: "Aligned AI" },
+  { n: 4, name: "Scaled AI" },
+  { n: 5, name: "Future Ready AI" }
+];
+
+// Maturity indicators (Section 4.13, pp. 82–83), paraphrased: a short label and the full line per level.
+const INDICATORS = [
+  { key: "acc", name: "Accountability", q: "Who owns it, and is it reported?", steps: [
+    ["Not assigned", "Not consistently assigned."],
+    ["Roles assigned", "Roles are consistently assigned to accomplish the area’s goals."],
+    ["Reported up", "Objectives and metrics (KPI, KRI, ROI) are set and reported to higher management."],
+    ["Managed across", "Processes are measured and managed consistently across sub-components."],
+    ["Strategy-led", "Improvements to standard processes are chosen and made based on long-term strategy."]] },
+  { key: "plan", name: "Planning", q: "Is there a plan, and is it kept current?", steps: [
+    ["No plan", "Not consistently performed."],
+    ["Plan exists", "A plan exists for the area’s goals and names the relevant stakeholders."],
+    ["Updated on metrics", "Plans are updated periodically based on performance against metrics."],
+    ["Tailorable standard", "Plans and policies define processes that sub-components can tailor."],
+    ["Future scenarios", "Planning considers future regulatory, societal and technological scenarios."]] },
+  { key: "res", name: "Resourcing", q: "Is it budgeted, staffed and funded?", steps: [
+    ["Ad hoc", "Not consistently allocated."],
+    ["Budgeted", "Adequate resources come through the established budgeting process."],
+    ["Performance-based", "Resources are allocated based on the area’s measured performance."],
+    ["Managed across", "Resources are allocated and managed consistently across sub-components."],
+    ["Long-term strategy", "Resources follow the long-term strategy to maximize utility across possible futures."]] }
+];
+
+// Context attributes (Table 1, p. 27). Suggestions come from the book's example variables; any text is allowed.
+const PROFILE = [
+  ["Organizational", [
+    ["footprint", "Organization footprint", ["National", "Regional", "Global"]],
+    ["domain", "Domain", ["Finance", "Health care", "HR software"]],
+    ["regulatory", "Regulatory posture", ["Regulated", "Semi-regulated", "Unregulated"]],
+    ["size", "Size (staff in the unit)", ["<100", "100–1K", "1K–10K"]],
+    ["horizon", "Planning horizon", ["<6 months", "6 months – 1 year", "1–3 years", ">3 years"]],
+    ["scope", "Organizational scope", ["Team", "Business unit", "Program", "Organization"]]]],
+  ["Technology", [
+    ["swe", "Software engineering strategy", ["Software organization", "Only IT functions", "Software outsourced"]],
+    ["core", "Core technology competency", ["Product first", "AI first", "Single core competency", "Multi-industry"]],
+    ["data", "Data readiness", ["Datasets are AI-ready", "Partially AI-ready", "Purchased for AI", "Hybrid"]]]],
+  ["AI", [
+    ["approach", "Primary AI development approach", ["Build", "Buy", "Customize", "Hybrid"]],
+    ["risk", "AI risk profile", ["High", "Medium", "Low"]],
+    ["goal", "AI business goal (adopter type)", ["Thought leader / AI innovator", "Early adopter", "Early majority", "Late majority", "Laggard"]],
+    ["staffing", "AI staffing", ["In-house", "Contracted", "None"]]]]
+];
+
+const KEY = "maturityIndex.v0";
+const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const allCAs = DIMS.flatMap(d => d.capabilityAreas.map(c => ({ ...c, dim: d.dimension })));
+const blank = () => ({ meta: { dept: "", who: "", date: new Date().toISOString().slice(0, 10), scope: 2 }, profile: {}, areas: {} });
+
+let state = blank();
+try { const s = JSON.parse(localStorage.getItem(KEY) || "null"); if (s && s.areas) state = { ...blank(), ...s }; } catch (e) {}
+const save = () => { try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {} };
+const area = id => (state.areas[id] ||= { ind: {}, goals: {}, note: "" });
+const inScope = () => allCAs.filter(c => c.level <= state.meta.scope);
+
+// ---- Scoring ----
+function rateArea(c) {
+  const a = state.areas[c.id] || { ind: {}, goals: {} };
+  const inds = INDICATORS.map(i => a.ind[i.key] || 0);
+  const goals = c.goals.map(g => a.goals[g.n] || "");
+  const answered = inds.filter(Boolean).length + goals.filter(Boolean).length;
+  const total = inds.length + goals.length;
+  const allMet = goals.every(g => g === "met");
+  const indMin = Math.min(...inds.map(v => v || 1));
+  const rating = allMet ? indMin : 1;
+  const credit = goals.reduce((s, g) => s + (g === "met" ? 1 : g === "partly" ? 0.5 : 0), 0);
+  return { rating, inds, goals, allMet, answered, total, credit, nGoals: goals.length, done: answered === total };
+}
+
+// Why an area isn't yet at level n: the goals and indicators that fall short.
+function shortfall(c, r, n) {
+  const out = [];
+  const open = r.goals.map((g, i) => [g, c.goals[i].n]).filter(([g]) => g !== "met");
+  if (open.length) {
+    const un = open.filter(([g]) => !g).length;
+    const parts = [];
+    const notMet = open.filter(([g]) => g).map(([g, k]) => `${k} ${g === "partly" ? "partly met" : "not met"}`);
+    if (notMet.length) parts.push(`goal ${notMet.join(", goal ")}`);
+    if (un) parts.push(`${un} goal${un > 1 ? "s" : ""} unanswered`);
+    out.push(parts.join("; "));
+  }
+  INDICATORS.forEach((ind, i) => {
+    const v = r.inds[i];
+    if (!v) out.push(`${ind.name} unanswered`);
+    else if (v < n) out.push(`${ind.name} at ${v}, needs ${n}`);
+  });
+  return out;
+}
+
+function score() {
+  const areas = inScope().map(c => ({ c, r: rateArea(c) }));
+  const max = state.meta.scope;
+  let overall = 1;
+  for (let n = 2; n <= max; n++) {
+    if (areas.filter(x => x.c.level <= n).every(x => x.r.rating >= n)) overall = n; else break;
+  }
+  const dims = DIMS.map(d => {
+    const mine = areas.filter(x => x.c.dim === d.dimension);
+    if (!mine.length) return null;
+    const rating = Math.min(max, ...mine.map(x => x.r.rating));
+    const goals = mine.reduce((s, x) => s + x.r.nGoals, 0);
+    const credit = mine.reduce((s, x) => s + x.r.credit, 0);
+    return { d, rating, pct: goals ? Math.round(100 * credit / goals) : 0, credit, goals, areas: mine };
+  }).filter(Boolean);
+  const answered = areas.reduce((s, x) => s + x.r.answered, 0);
+  const total = areas.reduce((s, x) => s + x.r.total, 0);
+  const next = overall < max ? overall + 1 : null;
+  const blockers = next ? areas.filter(x => x.c.level <= next && x.r.rating < next).map(x => ({ ...x, why: shortfall(x.c, x.r, next) })) : [];
+  const readyCount = next ? areas.filter(x => x.c.level <= next).length - blockers.length : 0;
+  const neededCount = next ? areas.filter(x => x.c.level <= next).length : 0;
+  return { areas, overall, dims, answered, total, next, blockers, readyCount, neededCount, max };
+}
+
+// ---- Rendering ----
+function renderProfile() {
+  document.getElementById("pgrid").innerHTML = PROFILE.map(([grp, fields]) =>
+    `<p class="eyebrow pgroup">${grp}</p>` + fields.map(([k, label, opts]) => `
+      <label class="field"><span>${esc(label)}</span>
+        <input list="dl-${k}" data-prof="${k}" value="${esc(state.profile[k])}">
+        <datalist id="dl-${k}">${opts.map(o => `<option value="${esc(o)}">`).join("")}</datalist>
+      </label>`).join("")).join("");
+}
+
+function areaCard(c) {
+  const a = area(c.id);
+  const indBlock = INDICATORS.map(ind => {
+    const v = a.ind[ind.key] || 0;
+    return `<div class="ind" data-l="${Math.max(1, v)}">
+      <div class="ind-h"><b>${ind.name}</b><span class="q">${ind.q}</span></div>
+      <div class="steps" role="radiogroup" aria-label="${ind.name}">${ind.steps.map(([short, full], i) => `
+        <label title="Level ${i + 1}: ${esc(full)}" data-l="${i + 1}"${i + 1 > state.meta.scope ? ' class="over"' : ""}>
+          <input type="radio" name="ind|${c.id}|${ind.key}" value="${i + 1}"${v === i + 1 ? " checked" : ""}>
+          <span><b>${i + 1}</b>${esc(short)}</span></label>`).join("")}
+      </div>
+      <p class="full">${v ? esc(ind.steps[v - 1][1]) : "Pick the highest step that is true today."}</p>
+    </div>`;
+  }).join("");
+  const goalBlock = c.goals.map(g => {
+    const v = a.goals[g.n] || "";
+    const opt = (val, label) => `<label><input type="radio" name="goal|${c.id}|${g.n}" value="${val}"${v === val ? " checked" : ""}><span>${label}</span></label>`;
+    return `<div class="goal">
+      <p class="gt"><b>Goal ${g.n}</b>${esc(g.summary)}</p>
+      <div class="gopt" role="radiogroup" aria-label="Goal ${g.n}">${opt("met", "Met")}${opt("partly", "Partly")}${opt("not", "Not met")}</div>
+      <details><summary>${g.practices.length} practices</summary><ol>${g.practices.map(p => `<li><span>${g.n}.${p.n}</span><span>${esc(p.summary)}</span></li>`).join("")}</ol></details>
+    </div>`;
+  }).join("");
+  return `<details class="ca" id="ca-${c.id}" data-l="${c.level}">
+    <summary>
+      <span class="ca-name"><span class="nm">${esc(c.name)}</span><span class="id">${c.id} · p. ${c.bookPage}</span><span class="badge">L${c.level}</span></span>
+      <span class="chip" data-chip="${c.id}"></span>
+      <span class="ca-sub" data-sub="${c.id}"></span>
+    </summary>
+    <div class="ca-body">
+      <p class="def">${esc(c.definition)}</p>
+      <div><p class="sec-label">Goals</p>${goalBlock}</div>
+      <div><p class="sec-label">Maturity indicators</p>${indBlock}</div>
+      <label class="field"><span>Evidence or notes</span><textarea rows="2" data-note="${c.id}" placeholder="Links, documents, who said what">${esc(a.note)}</textarea></label>
+    </div>
+  </details>`;
+}
+
+function renderAssess() {
+  const scoped = inScope();
+  const groups = [...new Set(DIMS.map(d => d.group))];
+  const open = new Set([...document.querySelectorAll(".ca[open]")].map(e => e.id));
+  document.getElementById("assess").innerHTML = groups.map(g => {
+    const dims = DIMS.filter(d => d.group === g && d.capabilityAreas.some(c => c.level <= state.meta.scope));
+    return `<p class="eyebrow group-label">${esc(g)}</p>` + dims.map(d => `
+      <section class="dim"><div class="dim-h"><h2>${esc(d.dimension)}</h2><span class="pg">§${d.section} · pp. ${d.bookPages}</span></div>
+      ${scoped.filter(c => c.dim === d.dimension).map(areaCard).join("")}</section>`).join("");
+  }).join("");
+  open.forEach(id => { const e = document.getElementById(id); if (e) e.open = true; });
+  document.querySelectorAll('input[name="scope"]').forEach(i => i.checked = +i.value === state.meta.scope);
+}
+
+function renderResults() {
+  const s = score();
+  for (const { c, r } of s.areas) {
+    const chip = document.querySelector(`[data-chip="${c.id}"]`), sub = document.querySelector(`[data-sub="${c.id}"]`);
+    if (!chip) continue;
+    const shown = Math.min(r.rating, s.max);
+    if (r.answered) { chip.dataset.l = shown; chip.textContent = `Rated L${shown}`; }
+    else { delete chip.dataset.l; chip.textContent = "Not started"; }
+    const capped = r.rating > 1 ? "" : !r.allMet && r.answered ? " · goals not all met" : "";
+    sub.textContent = `${r.answered} of ${r.total} answered${capped}`;
+  }
+  const L = LEVELS[s.overall - 1];
+  const pct = s.total ? Math.round(100 * s.answered / s.total) : 0;
+  const nextLine = s.next
+    ? `<p>Level ${s.next} needs ${s.neededCount} areas. ${s.readyCount} ${s.readyCount === 1 ? "is" : "are"} there.</p>`
+    : `<p>Every area in scope reaches Level ${s.max}.${s.max < 3 ? " Switch the scope to Levels 1–3 to keep going." : ""}</p>`;
+  const blockersHtml = s.next
+    ? (s.blockers.length
+        ? `<ul>${s.blockers.map(b => `<li><a href="#ca-${b.c.id}" data-jump="${b.c.id}">${esc(b.c.name)}</a><span>${esc(b.why.join(" · "))}</span></li>`).join("")}</ul>`
+        : `<ul><li class="ok">Nothing in the way.</li></ul>`)
+    : `<ul><li class="ok">Nothing in scope is in the way.</li></ul>`;
+  document.getElementById("results").innerHTML = `
+    <div class="overall" data-l="${s.overall}">
+      <span class="big"><span><small>Level</small>${s.overall}</span></span>
+      <h2>${L.name}</h2>
+      <p>${esc(state.meta.dept || "This unit")}${state.meta.date ? ` · ${esc(state.meta.date)}` : ""}</p>
+    </div>
+    <div class="ladder" data-l="${s.overall}" aria-hidden="true">${LEVELS.map(l => `<span class="${l.n <= s.overall ? "on" : l.n > s.max ? "out" : ""}" title="Level ${l.n}"></span>`).join("")}</div>
+    <p class="progress">${s.answered} of ${s.total} questions answered (${pct}%). Scope: Levels 1–${s.max}.</p>
+    <div class="dimrows">
+      <p class="eyebrow">By dimension</p>
+      ${s.dims.map(x => `<div class="dimrow" data-l="${x.rating}">
+        <span class="dn">${esc(x.d.dimension)}</span>
+        <span class="pips" aria-label="Level ${x.rating} of ${s.max}">${Array.from({ length: s.max }, (_, i) => `<i class="${i < x.rating ? "on" : ""}"></i>`).join("")}</span>
+        <div class="bar"><div class="track"><div class="fill" style="width:${x.pct}%"></div></div><span>goals ${x.pct}%</span></div>
+      </div>`).join("")}
+    </div>
+    <div class="blockers">
+      <p class="eyebrow">${s.next ? `Holding it below Level ${s.next}` : "Next"}</p>
+      ${nextLine}
+      ${blockersHtml}
+    </div>`;
+}
+
+function renderAll() {
+  ["dept", "who", "date"].forEach(k => document.querySelector(`[data-meta="${k}"]`).value = state.meta[k] || "");
+  renderProfile();
+  renderAssess();
+  renderResults();
+}
+
+// ---- Events ----
+document.addEventListener("change", e => {
+  const t = e.target;
+  if (t.name === "scope") { state.meta.scope = +t.value; save(); renderAssess(); renderResults(); return; }
+  if (t.name && t.name.startsWith("ind|")) {
+    const [, id, key] = t.name.split("|");
+    area(id).ind[key] = +t.value;
+    const box = t.closest(".ind");
+    box.dataset.l = t.value;
+    box.querySelector(".full").textContent = INDICATORS.find(i => i.key === key).steps[+t.value - 1][1];
+  } else if (t.name && t.name.startsWith("goal|")) {
+    const [, id, n] = t.name.split("|");
+    area(id).goals[n] = t.value;
+  } else return;
+  save(); renderResults();
+});
+document.addEventListener("input", e => {
+  const t = e.target;
+  if (t.dataset.meta) { state.meta[t.dataset.meta] = t.value; save(); renderResults(); }
+  else if (t.dataset.prof) { state.profile[t.dataset.prof] = t.value; save(); }
+  else if (t.dataset.note) { area(t.dataset.note).note = t.value; save(); }
+});
+document.getElementById("results").addEventListener("click", e => {
+  const a = e.target.closest("[data-jump]");
+  if (!a) return;
+  e.preventDefault();
+  const card = document.getElementById("ca-" + a.dataset.jump);
+  card.open = true;
+  card.scrollIntoView({ behavior: "smooth", block: "start" });
+});
+
+let toastTimer;
+function toast(msg) {
+  const el = document.getElementById("toast");
+  el.textContent = msg; clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.textContent = "", 4000);
+}
+
+function summaryText() {
+  const s = score();
+  const lines = [
+    `AI maturity index (v0): ${state.meta.dept || "unnamed unit"}${state.meta.date ? `, ${state.meta.date}` : ""}`,
+    `Overall: Level ${s.overall} (${LEVELS[s.overall - 1].name}). Scope Levels 1–${s.max}. ${s.answered}/${s.total} answered.`,
+    "", "By dimension:",
+    ...s.dims.map(x => `- ${x.d.dimension}: L${x.rating}, goals ${x.pct}%`)
+  ];
+  if (s.next && s.blockers.length) {
+    lines.push("", `Holding it below Level ${s.next}:`, ...s.blockers.map(b => `- ${b.c.name}: ${b.why.join("; ")}`));
+  }
+  return lines.join("\n");
+}
+
+document.getElementById("b-copy").onclick = async () => {
+  try { await navigator.clipboard.writeText(summaryText()); toast("Summary copied."); }
+  catch (e) { toast("Couldn't copy here. Use Save file instead."); }
+};
+document.getElementById("b-save").onclick = () => {
+  const slug = (state.meta.dept || "unit").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "unit";
+  const blob = new Blob([JSON.stringify({ app: "maturity-index", version: 0, ...state }, null, 2)], { type: "application/json" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = `maturity-${slug}-${state.meta.date || "undated"}.json`;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+  toast("Saved.");
+};
+document.getElementById("b-open").onclick = () => document.getElementById("f-open").click();
+document.getElementById("f-open").onchange = async e => {
+  const f = e.target.files[0]; e.target.value = "";
+  if (!f) return;
+  try {
+    const d = JSON.parse(await f.text());
+    if (!d || typeof d.areas !== "object") throw new Error();
+    state = { ...blank(), meta: { ...blank().meta, ...d.meta }, profile: d.profile || {}, areas: d.areas };
+    save(); renderAll(); toast(`Opened ${f.name}.`);
+  } catch (err) { toast("That file isn't a saved maturity index."); }
+};
+document.getElementById("b-clear").onclick = () => {
+  if (!confirm("Clear every answer on this page? Save a file first if you want to keep them.")) return;
+  state = blank(); save(); renderAll(); toast("Cleared.");
+};
+
+renderAll();
+</script>
+</body>
+</html>
