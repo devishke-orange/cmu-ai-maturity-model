@@ -8,7 +8,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=Source+Sans+3:ital,wght@0,400;0,600;0,700;1,400&family=IBM+Plex+Mono:wght@400;500&display=swap">
 <style>
-/* Score one organizational unit: enter goals and maturity indicators per capability area, get a level per dimension and overall. v0: rough, meant to be argued with. */
+/* Score one organizational unit: enter goals and maturity indicators per capability area, get a level per dimension and overall. A prototype of v0, meant to be argued with. */
 :root {
   --bg: #f3f5f7;
   --surface: #ffffff;
@@ -227,7 +227,7 @@ footer { margin-top: 36px; padding-top: 16px; border-top: 1px solid var(--line);
 <div class="wrap">
   <header class="top">
     <span class="eyebrow">AI Adoption Maturity Model · score one unit</span>
-    <h1>Maturity index <span class="v0">v0 · rough draft</span></h1>
+    <h1>Maturity index <span class="v0">prototype</span></h1>
     <p class="lede">For one organizational unit, such as a department: mark which goals it meets in each capability area, and how far its accountability, planning and resourcing go. The level per dimension and overall updates as you go. Answers stay in this browser. Use <b>Save file</b> to keep a copy or share it.</p>
   </header>
 
@@ -276,7 +276,7 @@ footer { margin-top: 36px; padding-top: 16px; border-top: 1px solid var(--line);
 
   <footer>
     <p>Unofficial study aid. Condensed from <i>The AI Adoption Maturity Model v1.0</i> by the Software Engineering Institute (SEI) at Carnegie Mellon University and Accenture. The model and its content are © 2026 Carnegie Mellon University. Wording is paraphrased; see the original publication for the authoritative text. Not affiliated with or endorsed by Carnegie Mellon University, SEI or Accenture.</p>
-    <p>This scoring page is a rough first version for trying the model on a real unit. It is not SEI's assessment method, which the book describes as expert-led (Section 5.1).</p>
+    <p>This scoring page is a prototype for trying the model on a real unit, still being refined. It is not SEI's assessment method, which the book describes as expert-led (Section 5.1).</p>
   </footer>
 </div>
 
@@ -556,7 +556,7 @@ function toast(msg) {
 function summaryText() {
   const s = score();
   const lines = [
-    `AI maturity index (v0): ${state.meta.dept || "unnamed unit"}${state.meta.date ? `, ${state.meta.date}` : ""}`,
+    `AI maturity index (prototype): ${state.meta.dept || "unnamed unit"}${state.meta.date ? `, ${state.meta.date}` : ""}`,
     `Overall: Level ${s.overall} (${LEVELS[s.overall - 1].name}). Scope Levels 1–${s.max}. ${s.answered}/${s.total} answered.`,
     "", "By dimension:",
     ...s.dims.map(x => `- ${x.d.dimension}: L${x.rating}, goals ${x.pct}%`)
@@ -573,7 +573,7 @@ document.getElementById("b-copy").onclick = async () => {
 };
 document.getElementById("b-save").onclick = () => {
   const slug = (state.meta.dept || "unit").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "unit";
-  const blob = new Blob([JSON.stringify({ app: "maturity-index", version: 0, ...state }, null, 2)], { type: "application/json" });
+  const blob = new Blob([JSON.stringify({ app: "maturity-index", version: "prototype", ...state }, null, 2)], { type: "application/json" });
   const a = document.createElement("a");
   a.href = URL.createObjectURL(blob);
   a.download = `maturity-${slug}-${state.meta.date || "undated"}.json`;
